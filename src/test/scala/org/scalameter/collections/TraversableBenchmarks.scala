@@ -17,13 +17,16 @@ class TraversableBenchmarks extends PerformanceTest.Regression with Collections 
   performance of "Traversable" in {
 
     measure method "foreach" config (
+      exec.minWarmupRuns -> 60,
+      exec.maxWarmupRuns -> 150,
       exec.benchRuns -> 36,
-      exec.independentSamples -> 9,
-      reports.regression.significance -> 1e-13
+      exec.independentSamples -> 3,
+      reports.regression.significance -> 1e-13,
+      reports.regression.noiseMagnitude -> 0.2
     ) in {
-      val from = 1000000
-      val to = 5000000
-      val by = 2000000
+      val from = 200000
+      val to = 1000000
+      val by = 200000
 
       using(arrays(from, to, by)) curve("Array") in { xs =>
         var sum = 0
@@ -44,8 +47,7 @@ class TraversableBenchmarks extends PerformanceTest.Regression with Collections 
         exec.benchRuns -> 32,
         exec.independentSamples -> 4,
         exec.reinstantiation.fullGC -> true,
-        exec.reinstantiation.frequency -> 5,
-        exec.noise.magnitude -> 1.0
+        exec.reinstantiation.frequency -> 5
       ) in { xs =>
         var sum = 0
         xs.foreach(sum += _)
@@ -59,16 +61,21 @@ class TraversableBenchmarks extends PerformanceTest.Regression with Collections 
     }
   
     measure method "reduce" config (
-      exec.minWarmupRuns -> 20,
+      exec.minWarmupRuns -> 120,
+      exec.maxWarmupRuns -> 240,
       exec.benchRuns -> 36,
-      exec.independentSamples -> 9,
-      reports.regression.significance -> 1e-13
+      exec.independentSamples -> 3,
+      reports.regression.significance -> 1e-13,
+      reports.regression.noiseMagnitude -> 0.2
     ) in {
-      val from = 500000
-      val to = 1500000
-      val by = 500000
+      val from = 100000
+      val to = 600000
+      val by = 150000
 
-      using(arrays(from, to, by)) curve("Array") in {
+      using(arrays(from, to, by)) curve("Array") config (
+        exec.minWarmupRuns -> 150,
+        exec.maxWarmupRuns -> 320
+      ) in {
         _.reduce(_ + _)
       }
 
@@ -81,11 +88,10 @@ class TraversableBenchmarks extends PerformanceTest.Regression with Collections 
       }
 
       using(lists(from, to, by)) curve("List") config (
-        exec.benchRuns -> 20,
+        exec.benchRuns -> 30,
         exec.independentSamples -> 4,
         exec.reinstantiation.fullGC -> true,
-        exec.reinstantiation.frequency -> 5,
-        exec.noise.magnitude -> 1.0
+        exec.reinstantiation.frequency -> 5
       ) in {
         _.reduce(_ + _)
       }
@@ -96,19 +102,26 @@ class TraversableBenchmarks extends PerformanceTest.Regression with Collections 
     }
     
     measure method "filter" config (
+      exec.minWarmupRuns -> 100,
+      exec.maxWarmupRuns -> 200,
       exec.benchRuns -> 36,
+      exec.independentSamples -> 4,
       reports.regression.significance -> 1e-13,
-      exec.independentSamples -> 9
+      reports.regression.noiseMagnitude -> 0.2
     ) in {
-      val from = 500000
-      val to = 2000000
-      val by = 500000
+      val from = 100000
+      val to = 400000
+      val by = 100000
 
       using(arrays(from, to, by)) curve("Array") in {
         _.filter(_ % 2 == 0)
       }
 
-      using(arraybuffers(from, to, by)) curve("ArrayBuffer")  in {
+      using(arraybuffers(from, to, by)) curve("ArrayBuffer") config (
+        exec.minWarmupRuns -> 120,
+        exec.maxWarmupRuns -> 240,
+        exec.reinstantiation.frequency -> 4
+      ) in {
         _.filter(_ % 2 == 0)
       }
       
@@ -117,30 +130,32 @@ class TraversableBenchmarks extends PerformanceTest.Regression with Collections 
       }
 
       using(lists(from, to, by)) curve("List") config (
-        exec.benchRuns -> 48,
+        exec.minWarmupRuns -> 120,
+        exec.maxWarmupRuns -> 240,
+        exec.benchRuns -> 64,
         exec.independentSamples -> 6,
         exec.reinstantiation.fullGC -> true,
-        exec.reinstantiation.frequency -> 6,
-        exec.noise.magnitude -> 1.0
+        exec.reinstantiation.frequency -> 6
       ) in {
         _.filter(_ % 2 == 0)
       }
 
-      using(ranges(from, to, by)) curve("Range") config (
-        exec.minWarmupRuns -> 25
-      ) in {
+      using(ranges(from, to, by)) curve("Range") in {
         _.filter(_ % 2 == 0)
       }
     }
 
     measure method "groupBy" config (
+      exec.minWarmupRuns -> 80,
+      exec.maxWarmupRuns -> 160,
       exec.benchRuns -> 36,
+      exec.independentSamples -> 4,
       reports.regression.significance -> 1e-13,
-      exec.independentSamples -> 9
+      reports.regression.noiseMagnitude -> 0.2
     ) in {
-      val from = 100000
-      val to = 600000
-      val by = 200000
+      val from = 50000
+      val to = 200000
+      val by = 50000
 
       using(arrays(from, to, by)) curve("Array") in {
         _.groupBy(_ % 10)
@@ -160,8 +175,7 @@ class TraversableBenchmarks extends PerformanceTest.Regression with Collections 
         exec.reinstantiation.fullGC -> true,
         exec.reinstantiation.frequency -> 4,
         exec.outliers.suspectPercent -> 50,
-        exec.outliers.covMultiplier -> 2.0,
-        exec.noise.magnitude -> 1.0
+        exec.outliers.covMultiplier -> 2.0
       ) in {
         _.groupBy(_ % 10)
       }
@@ -172,13 +186,16 @@ class TraversableBenchmarks extends PerformanceTest.Regression with Collections 
     }
 
     measure method "map" config (
+      exec.minWarmupRuns -> 100,
+      exec.maxWarmupRuns -> 200,
       exec.benchRuns -> 36,
       reports.regression.significance -> 1e-13,
-      exec.independentSamples -> 9
+      exec.independentSamples -> 4,
+      reports.regression.noiseMagnitude -> 0.2
     ) in {
-      val from = 500000
-      val to = 2000000
-      val by = 600000
+      val from = 100000
+      val to = 400000
+      val by = 100000
 
       using(arrays(from, to, by)) curve("Array") in {
         _.map(_ * 2)
@@ -194,7 +211,7 @@ class TraversableBenchmarks extends PerformanceTest.Regression with Collections 
 
       using(lists(from, to, by)) curve("List") config (
         exec.benchRuns -> 48,
-        exec.independentSamples -> 6,
+        exec.independentSamples -> 4,
         exec.reinstantiation.fullGC -> true,
         exec.reinstantiation.frequency -> 6,
         exec.noise.magnitude -> 1.0
@@ -208,13 +225,16 @@ class TraversableBenchmarks extends PerformanceTest.Regression with Collections 
     }
 
     measure method "flatMap" config (
+      exec.minWarmupRuns -> 100,
+      exec.maxWarmupRuns -> 200,
       exec.benchRuns -> 36,
       reports.regression.significance -> 1e-13,
-      exec.independentSamples -> 9
+      exec.independentSamples -> 4,
+      reports.regression.noiseMagnitude -> 0.2
     ) in {
-      val from = 250000
-      val to = 750000
-      val by = 250000
+      val from = 50000
+      val to = 200000
+      val by = 50000
 
       using(arrays(from, to, by)) curve("Array") in {
         _.flatMap(x => 0 until 2)
@@ -230,11 +250,10 @@ class TraversableBenchmarks extends PerformanceTest.Regression with Collections 
       }
 
       using(lists(from, to, by)) curve("List") config (
-        exec.benchRuns -> 48,
+        exec.benchRuns -> 64,
         exec.independentSamples -> 6,
         exec.reinstantiation.fullGC -> true,
-        exec.reinstantiation.frequency -> 6,
-        exec.noise.magnitude -> 1.0
+        exec.reinstantiation.frequency -> 6
       ) in {
         _.flatMap(x => 0 until 2)
       }
